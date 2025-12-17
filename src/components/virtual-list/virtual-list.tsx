@@ -81,6 +81,6 @@ function calculateItemsToRender({
   totalItems,
 }: CalculateItemsToRenderProps): RenderInterval {
   const start = itemHeight === 0 ? 0 : Math.floor(scrollPosition / itemHeight);
-  const end = Math.min(start + amount + 1, totalItems - 1);
+  const end = Math.min(start + amount + 1, totalItems);
   return { start, end };
 }
