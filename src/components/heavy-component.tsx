@@ -5,7 +5,9 @@ export type HeavyComponentProps = {
 export function HeavyComponent({ id }: HeavyComponentProps) {
   const index = parseInt(id);
 
+  // eslint-disable-next-line react-hooks/purity
   const startTime = performance.now();
+  // eslint-disable-next-line react-hooks/purity
   while (performance.now() - startTime < 1) {
     // Simulating heavy computation by burning 1ms of CPU time
   }
@@ -60,8 +62,8 @@ export function HeavyComponent({ id }: HeavyComponentProps) {
       </div>
       <p style={{ margin: 0, fontSize: "14px" }}>
         This component simulates heavy rendering by burning CPU cycles and
-        rendering complex nested elements. Without virtualization, rendering
-        thousands of these would freeze the browser.
+        rendering nested elements. Without virtualization, rendering thousands
+        of these would freeze the browser.
       </p>
     </div>
   );
