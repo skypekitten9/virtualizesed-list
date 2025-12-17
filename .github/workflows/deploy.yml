@@ -1,40 +1,56 @@
-name: Deploy to GitHub Pages
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Build & Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x, 24.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Upload artifact for GitHub Pages
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: ./dist
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build
+    - name: Upload static files as artifact
+      if: matrix.node-version == '20.x'
+      uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
+      with:
+        path: dist/
 
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+      # Add a dependency to the build job
+      needs: build
+  
+      # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+      permissions:
+        pages: write      # to deploy to Pages
+        id-token: write   # to verify the deployment originates from an appropriate source
+  
+      # Deploy to the github-pages environment
+      environment:
+        name: github-pages
+        url: ${{ steps.deployment.outputs.page_url }}
+  
+      # Specify runner + deployment step
+      runs-on: ubuntu-latest
+      steps:
+        - name: Deploy to GitHub Pages
+          id: deployment
+          uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
