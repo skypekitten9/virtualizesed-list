@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 
 export type VirtualListProps<T> = {
   items: T[];
@@ -6,7 +6,7 @@ export type VirtualListProps<T> = {
   itemClassName?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-export function VirtualList<T>({
+export const VirtualList = memo(function VirtualList<T>({
   items,
   toElement,
   ...rest
@@ -72,7 +72,7 @@ export function VirtualList<T>({
       </div>
     </div>
   );
-}
+}) as <T>(props: VirtualListProps<T>) => React.JSX.Element;
 
 type RenderInterval = { start: number; end: number };
 type CalculateItemsToRenderProps = {

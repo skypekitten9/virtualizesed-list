@@ -3,4 +3,17 @@ main {
   flex-direction: column;
   height: 100svh;
   color: white;
+  padding: 16px;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+.list {
+  border-radius: 8px;
+  overflow-y: auto;
+  height: 100%;
+  flex-grow: 1;
 }
