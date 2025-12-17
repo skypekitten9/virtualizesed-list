@@ -13,33 +13,32 @@ export function VirtualList<T>({
 }: VirtualListProps<T>) {
   const [itemHeight, setItemHeight] = useState<number>(0);
   const [renderAmount, setRenderAmount] = useState<number>(0);
-  const measureRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (measureRef.current) {
-      const firstItem = measureRef.current.firstElementChild;
-      if (firstItem) {
-        setItemHeight(firstItem.getBoundingClientRect().height);
-      }
-    }
-  }, [items]);
-
-  useEffect(() => {
-    if (containerRef.current && itemHeight > 0) {
-      const container = containerRef.current;
-      const containerHeight = container.getBoundingClientRect().height;
+  const setRenderAmountFromEl = (el: HTMLDivElement | null) => {
+    if (el) {
+      const containerHeight = el.getBoundingClientRect().height;
       const newAmountToRender = Math.ceil(containerHeight / itemHeight);
       console.log({ newAmountToRender, containerHeight, itemHeight });
       setRenderAmount(newAmountToRender);
     }
-  }, [itemHeight, items]);
+  };
 
-  const itemElements = items.map((item, index) => {
-    if (index >= renderAmount) return null;
+  const { start, end } = calculateItemsToRender({
+    amount: renderAmount,
+    scrollPosition: 0,
+    itemHeight,
+    totalItems: items.length,
+  });
+  const itemsToRender = items.slice(start, end);
+  const itemElements = itemsToRender.map((item, index) => {
     return (
       <div
-        ref={index === 0 ? measureRef : null}
+        ref={(el) => {
+          if (index === 0 && el) {
+            const height = el.getBoundingClientRect().height;
+            setItemHeight(height);
+          }
+        }}
         key={index}
         style={{
           position: "absolute",
@@ -53,10 +52,23 @@ export function VirtualList<T>({
   });
 
   return (
-    <div ref={containerRef} {...rest}>
+    <div ref={setRenderAmountFromEl} {...rest}>
       <div style={{ position: "relative", height: itemHeight * items.length }}>
         {itemElements}
       </div>
     </div>
   );
+}
+
+type RenderInterval = { start: number; end: number };
+type CalculateItemsToRenderProps = {
+  amount: number;
+  scrollPosition: number;
+  itemHeight: number;
+  totalItems: number;
+};
+function calculateItemsToRender({
+  amount,
+}: CalculateItemsToRenderProps): RenderInterval {
+  return { start: 0, end: amount };
 }
