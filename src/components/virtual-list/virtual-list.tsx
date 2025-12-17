@@ -1,4 +1,10 @@
-import { useState, memo } from "react";
+import { memo } from "react";
+import {
+  useContainerHeight,
+  useItemHeight,
+  useScrollPosition,
+} from "./virtual-list.hook";
+import { calculateItemsToRender } from "./virtual-list.util";
 
 export type VirtualListProps<T> = {
   items: T[];
@@ -11,46 +17,23 @@ export const VirtualList = memo(function VirtualList<T>({
   toElement,
   ...rest
 }: VirtualListProps<T>) {
-  const [itemHeight, setItemHeight] = useState<number>(0);
-  const [renderAmount, setRenderAmount] = useState<number>(0);
-  const [scrollPosition, setScrollPosition] = useState<number>(0);
-
-  const setRenderAmountFromEl = (el: HTMLDivElement | null) => {
-    if (el) {
-      const resizeObserver = new ResizeObserver(() => {
-        const containerHeight = el.getBoundingClientRect().height;
-        const newAmountToRender =
-          itemHeight === 0 ? 0 : Math.ceil(containerHeight / itemHeight);
-        setRenderAmount(newAmountToRender);
-      });
-      resizeObserver.observe(el);
-      return () => resizeObserver.disconnect();
-    }
-  };
-  const setScrollPosFromEl = (e: React.UIEvent<HTMLDivElement>) => {
-    const scrollTop = e.currentTarget.scrollTop;
-    setScrollPosition(scrollTop);
-  };
-
-  const { start, end } = calculateItemsToRender({
-    amount: renderAmount,
+  const { scrollPosition, handleOnScroll } = useScrollPosition();
+  const { itemHeight, setItemHeightFromEl } = useItemHeight();
+  const { containerHeight, setContainerHeightFromEl } = useContainerHeight();
+  const { itemsToRender, start } = calculateItemsToRender({
+    containerHeight,
     scrollPosition,
     itemHeight,
-    totalItems: items.length,
+    items,
   });
-  const itemsToRender = items.slice(start, end);
+
   const itemElements = itemsToRender.map((item, index) => {
     const relativeIndex = start + index;
     return (
       <div
         ref={(el) => {
-          if (index === 0 && el) {
-            const resizeObserver = new ResizeObserver(() => {
-              const height = el.getBoundingClientRect().height;
-              setItemHeight(height);
-            });
-            resizeObserver.observe(el);
-            return () => resizeObserver.disconnect();
+          if (index === 0) {
+            setItemHeightFromEl(el);
           }
         }}
         key={relativeIndex}
@@ -66,28 +49,16 @@ export const VirtualList = memo(function VirtualList<T>({
   });
 
   return (
-    <div ref={setRenderAmountFromEl} onScroll={setScrollPosFromEl} {...rest}>
+    <div
+      ref={(el) => {
+        setContainerHeightFromEl(el);
+      }}
+      onScroll={handleOnScroll}
+      {...rest}
+    >
       <div style={{ position: "relative", height: itemHeight * items.length }}>
         {itemElements}
       </div>
     </div>
   );
 }) as <T>(props: VirtualListProps<T>) => React.JSX.Element;
-
-type RenderInterval = { start: number; end: number };
-type CalculateItemsToRenderProps = {
-  amount: number;
-  scrollPosition: number;
-  itemHeight: number;
-  totalItems: number;
-};
-function calculateItemsToRender({
-  amount,
-  scrollPosition,
-  itemHeight,
-  totalItems,
-}: CalculateItemsToRenderProps): RenderInterval {
-  const start = itemHeight === 0 ? 0 : Math.floor(scrollPosition / itemHeight);
-  const end = Math.min(start + amount + 1, totalItems);
-  return { start, end };
-}
