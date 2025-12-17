@@ -6,9 +6,15 @@ main {
   padding: 16px;
 }
 
-h1,
-p {
-  margin: 0;
+header {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 12px;
+}
+
+header > * {
+  width: 50%;
+  margin: 0px;
 }
 
 .list {

@@ -24,16 +24,17 @@ export function App() {
   }, [items, sliderValue]);
   return (
     <main>
-      <h1 style={{ color: "black" }}>Virtualized list</h1>
-      <p style={{ color: "black" }}>Items to render: {sliderValue}</p>
-      <input
-        type="range"
-        min="0"
-        max={MAX_ITEMS}
-        value={sliderValue}
-        style={{ maxWidth: "400px" }}
-        onChange={(e) => setSliderValue(Number(e.target.value))}
-      />
+      <header>
+        <h2 style={{ color: "black" }}>
+          Virtualized list rendering {sliderValue}
+        </h2>
+        <input
+          type="range"
+          max={MAX_ITEMS}
+          value={sliderValue}
+          onChange={(e) => setSliderValue(Number(e.target.value))}
+        />
+      </header>
       <VirtualList
         className="list"
         items={itemsToRender}

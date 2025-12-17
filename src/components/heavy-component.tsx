@@ -28,6 +28,7 @@ export function HeavyComponent({ id }: HeavyComponentProps) {
         padding: "20px",
         margin: "10px",
         marginLeft: "0px",
+        marginTop: "0px",
         backgroundColor: color,
         borderRadius: "8px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
