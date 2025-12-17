@@ -17,11 +17,14 @@ export function VirtualList<T>({
 
   const setRenderAmountFromEl = (el: HTMLDivElement | null) => {
     if (el) {
-      const containerHeight = el.getBoundingClientRect().height;
-      const newAmountToRender =
-        itemHeight === 0 ? 0 : Math.ceil(containerHeight / itemHeight);
-      console.log({ itemHeight, containerHeight, newAmountToRender });
-      setRenderAmount(newAmountToRender);
+      const resizeObserver = new ResizeObserver(() => {
+        const containerHeight = el.getBoundingClientRect().height;
+        const newAmountToRender =
+          itemHeight === 0 ? 0 : Math.ceil(containerHeight / itemHeight);
+        setRenderAmount(newAmountToRender);
+      });
+      resizeObserver.observe(el);
+      return () => resizeObserver.disconnect();
     }
   };
   const setScrollPosFromEl = (e: React.UIEvent<HTMLDivElement>) => {
@@ -41,9 +44,13 @@ export function VirtualList<T>({
     return (
       <div
         ref={(el) => {
-          if (relativeIndex === 0 && el) {
-            const height = el.getBoundingClientRect().height;
-            setItemHeight(height);
+          if (index === 0 && el) {
+            const resizeObserver = new ResizeObserver(() => {
+              const height = el.getBoundingClientRect().height;
+              setItemHeight(height);
+            });
+            resizeObserver.observe(el);
+            return () => resizeObserver.disconnect();
           }
         }}
         key={relativeIndex}

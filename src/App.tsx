@@ -13,6 +13,7 @@ export function App() {
           borderRadius: "8px",
           margin: "16px",
           overflowY: "auto",
+          height: "100%",
           flexGrow: 1,
         }}
         items={items}
