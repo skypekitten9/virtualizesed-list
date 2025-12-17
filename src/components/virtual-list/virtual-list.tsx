@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 
 export type VirtualListProps<T> = {
   items: T[];
@@ -13,36 +13,43 @@ export function VirtualList<T>({
 }: VirtualListProps<T>) {
   const [itemHeight, setItemHeight] = useState<number>(0);
   const [renderAmount, setRenderAmount] = useState<number>(0);
+  const [scrollPosition, setScrollPosition] = useState<number>(0);
 
   const setRenderAmountFromEl = (el: HTMLDivElement | null) => {
     if (el) {
       const containerHeight = el.getBoundingClientRect().height;
-      const newAmountToRender = Math.ceil(containerHeight / itemHeight);
-      console.log({ newAmountToRender, containerHeight, itemHeight });
+      const newAmountToRender =
+        itemHeight === 0 ? 0 : Math.ceil(containerHeight / itemHeight);
+      console.log({ itemHeight, containerHeight, newAmountToRender });
       setRenderAmount(newAmountToRender);
     }
+  };
+  const setScrollPosFromEl = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    setScrollPosition(scrollTop);
   };
 
   const { start, end } = calculateItemsToRender({
     amount: renderAmount,
-    scrollPosition: 0,
+    scrollPosition,
     itemHeight,
     totalItems: items.length,
   });
   const itemsToRender = items.slice(start, end);
   const itemElements = itemsToRender.map((item, index) => {
+    const relativeIndex = start + index;
     return (
       <div
         ref={(el) => {
-          if (index === 0 && el) {
+          if (relativeIndex === 0 && el) {
             const height = el.getBoundingClientRect().height;
             setItemHeight(height);
           }
         }}
-        key={index}
+        key={relativeIndex}
         style={{
           position: "absolute",
-          top: index * itemHeight,
+          top: relativeIndex * itemHeight,
           width: "100%",
         }}
       >
@@ -52,7 +59,7 @@ export function VirtualList<T>({
   });
 
   return (
-    <div ref={setRenderAmountFromEl} {...rest}>
+    <div ref={setRenderAmountFromEl} onScroll={setScrollPosFromEl} {...rest}>
       <div style={{ position: "relative", height: itemHeight * items.length }}>
         {itemElements}
       </div>
@@ -69,6 +76,11 @@ type CalculateItemsToRenderProps = {
 };
 function calculateItemsToRender({
   amount,
+  scrollPosition,
+  itemHeight,
+  totalItems,
 }: CalculateItemsToRenderProps): RenderInterval {
-  return { start: 0, end: amount };
+  const start = itemHeight === 0 ? 0 : Math.floor(scrollPosition / itemHeight);
+  const end = Math.min(start + amount + 1, totalItems - 1);
+  return { start, end };
 }

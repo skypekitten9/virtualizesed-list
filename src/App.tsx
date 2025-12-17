@@ -10,6 +10,7 @@ export function App() {
       <VirtualList
         style={{
           border: "1px solid black",
+          margin: "16px",
           overflowY: "auto",
           flexGrow: 1,
         }}
