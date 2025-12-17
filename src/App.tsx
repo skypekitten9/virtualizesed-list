@@ -26,7 +26,7 @@ export function App() {
     <main>
       <header>
         <h2 style={{ color: "black" }}>
-          Virtualized list rendering {sliderValue}
+          Virtualized list rendering {sliderValue} items
         </h2>
         <input
           type="range"
